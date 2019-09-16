@@ -9,59 +9,52 @@ import os
 #
 #   Factory to return the OS specific config path class
 #
-def ConfigPath( name, vender, appname ):
+def ConfigPath( appname, vendor, filetype ):
     if sys.platform == 'win32':
         # windows
-        return WindowsConfigPath( name, appname )
+        return WindowsConfigPath( appname, vendor, filetype )
 
     if sys.platform == 'darwin':
         # assume darwin mean macOS
-        return MacOsConfigPath( name, vender )
+        return MacOsConfigPath( appname, vendor, filetype )
 
     else:
         # assume all else are XDG compatable
-        return XdgConfigPath( name, appname )
+        return XdgConfigPath( appname, vendor, filetype )
 
 class ConfigPathBase(object):
-    def __init__( self ):
-        pass
+    def __init__( self, appname, vendor, filetype, config_file_fmt, config_folder_fmt ):
+        self._config_naming_variables = {
+            'appname': appname,
+            'vendor': vendor,
+            'filetype': filetype,
+            }
+        self._config_file_fmt = config_file_fmt
+        self._config_folder_fmt = config_folder_fmt
 
-    #
-    #   to use a single config files use
-    #   saveFilePath and readFilePath
-    #
-    def saveFilePath( self, mkdir=False ):
-        raise NotImplementedError('saveFilePath')
+    def _getFolderName( self ):
+        return self._config_folder_fmt % self._config_naming_variables
 
-    def readFilePath( self ):
-        raise NotImplementedError('readFilePath')
+    def _getFileName( self ):
+        return self._config_file_fmt % self._config_naming_variables
+
+    def _getRootConfigFolder( self ):
+        raise NotImplementedError('_getRootConfigFolder')
 
     #
     #   to use a folder of config files use
     #   saveFolderPath and readFolderPath
     #
     def saveFolderPath( self, mkdir=False ):
-        raise NotImplementedError('saveFolderPath')
-
-    def readFolderPath( self ):
-        raise NotImplementedError('readFolderPath')
-
-class MacOsConfigPath(ConfigPathBase):
-    # vender is a FQDN for the website of the vender for this app
-    # example: sfind.barrys-emacs.org
-    # name is the apps config filename
-    # example: sfind.json
-    def __init__( self, name, vender ):
-        super(MacOsConfigPath, self).__init__()
-        self.name = name
-        self.vender = vender
-
-    def saveFolderPath( self, mkdir=False ):
         return self.configFolderPath( mkdir )
 
-    def readFolderPath( self ):
-        return self.configFolderPath()
+    def readFolderPath( self, mkdir=False ):
+        return self.configFolderPath( mkdir )
 
+    #
+    #   to use a single config files use
+    #   saveFilePath and readFilePath
+    #
     def saveFilePath( self, mkdir=False ):
         return self.configFilePath( mkdir )
 
@@ -74,69 +67,54 @@ class MacOsConfigPath(ConfigPathBase):
 
     def configFolderPath( self, mkdir ):
         # any folder that do not exist will be created
-
-        # change foo.org into org.foo
-        reversed_vender = '.'.join( reversed( self.vender.split('.') ) )
-
-        config_folder = os.path.join( self.getConfigFolder(), reversed_vender )
+        config_folder = os.path.join( self._getRootConfigFolder(), self._getFolderName() )
 
         if mkdir and not os.path.exists( config_folder ):
-                os.makedirs( config_folder )
+            os.makedirs( config_folder )
 
         return config_folder
 
     def configFilePath( self, mkdir ):
         # return the path to save the config data into
-        config_path = os.path.join( self.getConfigFolder(), self.name )
+        config_path = os.path.join( self._getRootConfigFolder(), self._getFileName() )
         return config_path
 
-    def getConfigFolder( self ):
-        return os.path.join( os.environ['HOME'], 'Library/Preferences' )
+class MacOsConfigPath(ConfigPathBase):
+    # vendor is a FQDN for the website of the vendor for this app
+    # example: sfind.barrys-emacs.org
+    # name is the apps config filename
+    # example: sfind.json
+    def __init__( self, appname, vendor, filetype ):
+        super(MacOsConfigPath, self).__init__(
+            appname, vendor, filetype,
+            '%(rev-vendor)s.%(appname)s%(filetype)s',
+            '%(rev-vendor)s.%(appname)s' )
 
+        # change foo.org into org.foo
+        reversed_vendor = '.'.join( reversed( self.vendor.split('.') ) )
+
+        self._config_naming_variables[ 'rev-vendor' ] = reversed_vendor
+
+    def _getRootConfigFolder( self ):
+        return os.path.join( os.environ['HOME'], 'Library/Preferences' )
 
 class XdgConfigPath(ConfigPathBase):
     # if appname is given put the config in a folder of that name
     # name is the name of the config file
-    def __init__( self, name, appname ):
-        super(XdgConfigPath, self).__init__()
-        self.name = name
-        self.appname = appname
+    def __init__( self, appname, vendor, filetype ):
+        super(XdgConfigPath, self).__init__(
+            appname, vendor, filetype,
+            '%(appname)s.%(vendor)s%(filetype)s',
+            '%(appname)s.%(vendor)s' )
 
-    def saveFolderPath( self, mkdir=False ):
-        config_home = self.getConfigHome()
-        config_folder = os.path.join( config_home, self.appname )
-
-        if mkdir and not os.path.exists( config_folder ):
-            os.makedirs( config_folder )
-
-        return config_folder
-
-    def readFolderPath( self, mkdir ):
-        # return the path to read the folder that store config files.
-        # any folder that do not exist will be created
-        config_home = self.getConfigHome()
-        config_folder = os.path.join( config_home, self.appname )
-
-        if mkdir and not os.path.exists( config_folder ):
-            os.makedirs( config_folder )
-
-        return config_folder
-
-    def saveFilePath( self, mkdir=False ):
-        # return the path to save the config data into
-        # any folder that do not exist will be created
-        config_home = self.getConfigHome()
-        config_path = os.path.join( config_home, self.name )
-        if mkdir and not os.path.exists( config_home ):
-            os.makedirs( config_home )
-
-        return config_path
+    def _getRootConfigFolder( self ):
+        return self.getConfigHome()
 
     def readFilePath( self ):
         # look for the config file in the config home then the config dirs
         # return the None is not found otherwise the config path.
         for config_dir in [self.getConfigHome()] + self.getConfigDirs():
-            config_path = os.path.join( config_dir, self.name )
+            config_path = os.path.join( config_dir, self._getFileName() )
             if os.path.exists( config_path ):
                 return config_path
 
@@ -158,10 +136,11 @@ class XdgConfigPath(ConfigPathBase):
 class WindowsConfigPath(ConfigPathBase):
     # if appname is given put the config in a folder of that name
     # name is the name of the config file
-    def __init__( self, name, appname ):
-        super(WindowsConfigPath, self).__init__()
-        self.name = name
-        self.appname = appname
+    def __init__( self, appname, vendor, filetype ):
+        super(WindowsConfigPath, self).__init__(
+            appname, vendor, filetype,
+            '%(appname)s.%(vendor)s%(filetype)s',
+            '%(appname)s.%(vendor)s' )
 
         import ctypes
         import ctypes.wintypes
@@ -174,35 +153,5 @@ class WindowsConfigPath(ConfigPathBase):
 
         self.config_folder = buf.value
 
-    def getConfigFolder( self ):
+    def _getRootConfigFolder( self ):
         return self.config_folder
-
-    def saveFolderPath( self, mkdir=False ):
-        return self.configFolderPath( mkdir )
-
-    def readFolderPath( self ):
-        return self.configFolderPath()
-
-    def saveFilePath( self, mkdir=False ):
-        return self.configFilePath( mkdir )
-
-    def readFilePath( self ):
-        config_path = self.configFilePath( False )
-        if os.path.exists( config_path ):
-            return config_path
-
-        return None
-
-    def configFolderPath( self, mkdir ):
-        # any folder that do not exist will be created
-        config_folder = os.path.join( self.getConfigFolder(), self.name )
-
-        if mkdir and not os.path.exists( config_folder ):
-                os.makedirs( config_folder )
-
-        return config_folder
-
-    def configFilePath( self, mkdir ):
-        # return the path to save the config data into
-        config_path = os.path.join( self.getConfigFolder(), self.name )
-        return config_path
