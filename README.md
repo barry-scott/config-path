@@ -7,7 +7,7 @@ to figure out an appropiate file path or folder path for the applications
 configuration data.
 
 ~~~~
-    ConfigPath( vendor, appname, filetype )
+ConfigPath( vendor, appname, filetype )
 ~~~~
 
 The `vendor` should be the domain name of the application provider.
@@ -82,11 +82,11 @@ language dependent.
 config_path uses the convention of combining the `appname` and `vendor` to create a
 path that is expected to be unique.
 
-For a file that will be `{appname}.{vendor}{filetype}` using the above example:
-`widget.example.com.json`.
+For a file that will be `{reversed-vendor}.{appname}{filetype}` using the above example:
+`com.example.widget.json`.
 
-When a folder is required the folder will be  `{appname}.{vendor}`.
-For example: `widget.example.com`
+When a folder is required the folder will be  `{reversed-vendor}.{appname}`.
+For example: `com.example.widget`.
 
 ## all others conventions
 
@@ -97,8 +97,8 @@ XDG allows for system configuration and user configuration files.
 The default user configuration folder is `~/.config`.
 The default system configuration folder is `/etc/xdg`.
 
-For a file that will be `{appname}.{vendor}{filetype}` using the above example:
-`widget.example.com.json`.
+For a file that will be `{reversed-vendor}.{appname}{filetype}` using the above example:
+`com.example.widget.json`.
 
-When a folder is required the folder will be  `{appname}.{vendor}`.
-For example: `widget.example.com`
+When a folder is required the folder will be  `{reversed-vendor}.{appname}`.
+For example: `com.example.widget`.
