@@ -3,19 +3,19 @@
 #
 VERSION = '1.0.0'
 
-import sys
+import platform
 import os
 
 #
 #   Factory to return the OS specific config path class
 #
 def ConfigPath( appname, vendor, filetype ):
-    if sys.platform == 'win32':
+    if platform.win32_ver()[0] != '':
         # windows
         return WindowsConfigPath( appname, vendor, filetype )
 
-    if sys.platform == 'darwin':
-        # assume darwin mean macOS
+    if platform.mac_ver()[0] != '':
+        # macOS
         return MacOsConfigPath( appname, vendor, filetype )
 
     else:
@@ -23,14 +23,18 @@ def ConfigPath( appname, vendor, filetype ):
         return XdgConfigPath( appname, vendor, filetype )
 
 class ConfigPathBase(object):
-    def __init__( self, appname, vendor, filetype, config_file_fmt, config_folder_fmt ):
+    def __init__( self, appname, vendor, filetype ):
         self._config_naming_variables = {
             'appname': appname,
             'vendor': vendor,
             'filetype': filetype,
             }
-        self._config_file_fmt = config_file_fmt
-        self._config_folder_fmt = config_folder_fmt
+        # change foo.org into org.foo
+        reversed_vendor = '.'.join( reversed( vendor.split('.') ) )
+        self._config_naming_variables[ 'rev-vendor' ] = reversed_vendor
+
+        self._config_file_fmt = '%(rev-vendor)s.%(appname)s%(filetype)s'
+        self._config_folder_fmt = '%(rev-vendor)s.%(appname)s'
 
     def _getFolderName( self ):
         return self._config_folder_fmt % self._config_naming_variables
@@ -85,15 +89,7 @@ class MacOsConfigPath(ConfigPathBase):
     # name is the apps config filename
     # example: sfind.json
     def __init__( self, appname, vendor, filetype ):
-        super(MacOsConfigPath, self).__init__(
-            appname, vendor, filetype,
-            '%(rev-vendor)s.%(appname)s%(filetype)s',
-            '%(rev-vendor)s.%(appname)s' )
-
-        # change foo.org into org.foo
-        reversed_vendor = '.'.join( reversed( self.vendor.split('.') ) )
-
-        self._config_naming_variables[ 'rev-vendor' ] = reversed_vendor
+        super(MacOsConfigPath, self).__init__( appname, vendor, filetype )
 
     def _getRootConfigFolder( self ):
         return os.path.join( os.environ['HOME'], 'Library/Preferences' )
@@ -102,10 +98,7 @@ class XdgConfigPath(ConfigPathBase):
     # if appname is given put the config in a folder of that name
     # name is the name of the config file
     def __init__( self, appname, vendor, filetype ):
-        super(XdgConfigPath, self).__init__(
-            appname, vendor, filetype,
-            '%(appname)s.%(vendor)s%(filetype)s',
-            '%(appname)s.%(vendor)s' )
+        super(XdgConfigPath, self).__init__( appname, vendor, filetype )
 
     def _getRootConfigFolder( self ):
         return self.getConfigHome()
@@ -137,10 +130,7 @@ class WindowsConfigPath(ConfigPathBase):
     # if appname is given put the config in a folder of that name
     # name is the name of the config file
     def __init__( self, appname, vendor, filetype ):
-        super(WindowsConfigPath, self).__init__(
-            appname, vendor, filetype,
-            '%(appname)s.%(vendor)s%(filetype)s',
-            '%(appname)s.%(vendor)s' )
+        super(WindowsConfigPath, self).__init__( appname, vendor, filetype )
 
         import ctypes
         import ctypes.wintypes

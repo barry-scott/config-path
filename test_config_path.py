@@ -1,3 +1,8 @@
+#
+#   test_config_path.py
+#
+from __future__ import print_function
+
 import config_path
 
 c = config_path.ConfigPath('foo', 'example.com', '.json')
