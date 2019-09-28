@@ -1,10 +1,13 @@
 # config-path
-Python library to work with path to config folders and files in an OS independent way.
+Python library to work out witch path to use for configuration folders
+and files in an operating system independent way.
 
-Each OS has particular conventions for where an application is expected
+Each operating system has particular conventions for where an application is expected
 to stores it configuration. The information provided to ConfigPath is used
-to figure out an appropiate file path or folder path for the applications
+to figure out an appropiate file path or folder path for the application's
 configuration data.
+
+Supports Windows, macOS and most unix systems using the 'XDG Base Directory Specification'.
 
 ~~~~
 ConfigPath( vendor, appname, filetype )
@@ -26,11 +29,15 @@ conf_path = ConfigPath( 'example.com', 'widget', '.json' )
 ## single configuration file
 
 ~~~~
-path = conf_path.saveFilePath( mkdir=True )
+path = conf_path.saveFilePath( mkdir=False )
 ~~~~
 
 `saveFilePath` returns the path where the configuation file should be written to.
+
 When `mkdir` is True the parent directory of the path will be created if it does not exist.
+
+Note: the path returned from `saveFilePath()` can be different from the
+path returned by `readFilePath()`.
 
 ~~~~
 path = conf_path.readFilePath()
@@ -42,25 +49,43 @@ if path is not None:
 is returned. Typcially an application will use its default configuration if there
 is no existing configuration file.
 
-Note: The path returned by `readFilePath` can be different to path returned by `saveFilePath`.
+Note: the path returned from `readFilePath()` can be different from the
+path returned by `saveFilePath()`.
+
 For example readFilePath may return a system wide default config until the appliaction
 saves a users specific configuration file.
 
 ## multiple configuration files
 
 ~~~~
-path = conf_path.saveFolderPath( mkdir=True )
+path = conf_path.saveFolderPath( mkdir=False )
 ~~~~
 
 `saveFolderPath` returns the path to the folder that the application should
 save its configuration files into. The naming of the file is left to the application logic.
 
+The path is a `pathlib.Path()` object for python 3 and a string for python 2
+
+When `mkdir` is True the parent directory of the path will be created
+if it does not exist.
+
+Note: the path returned from `saveFolderPath()` can be different from the
+path returned by `readFolderPath()`.
+
 ~~~~
-path = conf_path.readFolderPath( mkdir=True )
+path = conf_path.readFolderPath( mkdir=False )
 ~~~~
 
 `readFolderPath` returns the path to the folder that the application should use
 to read its configuration files.
+
+The path is a `pathlib.Path()` object for python 3 and a string for python 2
+
+When `mkdir` is True the parent directory of the path will be created
+if it does not exist.
+
+Note: the path returned from `readFolderPath()` can be different from the
+path returned by `saveFolderPath()`.
 
 ## macOS conventions
 
@@ -91,7 +116,7 @@ For example: `com.example.widget`.
 ## all others conventions
 
 For all systems that are not macOS or Windows config-path follows
-the 'XDG Base Directory Specification" for configuration data.
+the 'XDG Base Directory Specification' for configuration data.
 
 XDG allows for system configuration and user configuration files.
 The default user configuration folder is `~/.config`.
