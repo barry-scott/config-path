@@ -10,7 +10,7 @@ configuration data.
 Supports Windows, macOS and most unix systems using the 'XDG Base Directory Specification'.
 
 ~~~~
-ConfigPath( vendor, appname, filetype )
+ConfigPath( appname, vendor, filetype )
 ~~~~
 
 The `vendor` should be the domain name of the application provider.

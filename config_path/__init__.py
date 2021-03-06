@@ -11,7 +11,7 @@
     'XDG Base Directory Specification'.
 '''
 
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 
 __all__ = ('VERSION', 'ConfigPath')
 
