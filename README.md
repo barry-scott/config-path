@@ -23,7 +23,7 @@ configuration file:
 
 ~~~~
 from config_path import ConfigPath
-conf_path = ConfigPath( 'example.com', 'widget', '.json' )
+conf_path = ConfigPath( 'widget', 'example.com', '.json' )
 ~~~~
 
 ## single configuration file
