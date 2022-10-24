@@ -11,7 +11,7 @@
     'XDG Base Directory Specification'.
 '''
 
-VERSION = '1.0.2'
+VERSION = '1.0.3'
 
 __all__ = ('VERSION', 'ConfigPath')
 
@@ -143,8 +143,8 @@ class ConfigPath(object):
         # any folder that do not exist will be created
         config_folder = os.path.join( self._getRootConfigFolder(), self._getFolderName() )
 
-        if mkdir and not os.path.exists( config_folder ):
-            os.makedirs( config_folder )
+        if mkdir:
+            os.makedirs( config_folder, exist_ok=True )
 
         return config_folder
 
