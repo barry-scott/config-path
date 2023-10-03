@@ -1,7 +1,12 @@
 #!/bin/bash
 set -e
-PY=python3.7
 export TWINE_USERNAME=barryscott
+PACKAGE=${1:?package to upload}
+if [ ! -d "$PACKAGE" ]
+then
+    echo "Error: unknown package ${PACKAGE}"
+    exit 1
+fi
 
-${PY} -m twine check dist/*
-${PY} -m twine upload dist/*
+tmp.venv/bin/python -m twine check ${PACKAGE}/dist/*
+tmp.venv/bin/python -m twine upload -u __token__ -p $(<.pypi_token) ${PACKAGE}/dist/*

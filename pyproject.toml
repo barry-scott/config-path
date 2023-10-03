@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "config-path"
+authors = [
+    {name = "Barry Scott", email = "barry@barrys-emacs.org"},
+]
+description = "config_path is a library to work with paths to config folders and files in an OS independent way"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache 2.0"}
+keywords = [ "development" ]
+classifiers = [
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Utilities",
+    "Environment :: Console",
+    "Programming Language :: Python :: 3",
+]
+dependencies = []
+dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "config_path.VERSION"}
+
+[project.urls]
+"Homepage" = "https://github.com/barry-scott/config-path"
+"Bug Tracker" = "https://github.com/barry-scott/config-path/issues"

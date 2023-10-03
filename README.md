@@ -1,5 +1,5 @@
 # config-path
-Python library to work out witch path to use for configuration folders
+Python library to work out which path to use for configuration folders
 and files in an operating system independent way.
 
 Each operating system has particular conventions for where an application is expected
