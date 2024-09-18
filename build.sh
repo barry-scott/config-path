@@ -13,7 +13,7 @@ tmp.venv/bin/python -m pip install --quiet  \
     mypy \
     colour-text
 
-echo "Info: Building..."
+${PY} -m colour_text "<>green Info:<> Building..."
 
 # clean up build artifacts
 rm -rf dist build
